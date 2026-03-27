@@ -44,14 +44,14 @@ const Footer = () => {
               <li className="flex items-start gap-2">
                 <Phone className="w-4 h-4 mt-0.5 text-gold shrink-0" />
                 <div>
-                  <a href="tel:+919876543210" className="hover:text-gold transition-colors">+91 98765 43210</a>
+                  <a href="tel:+919752233666" className="hover:text-gold transition-colors">+91 97522 33666</a>
                   <br />
-                  <a href="tel:+919876543211" className="hover:text-gold transition-colors">+91 98765 43211</a>
+                  <a href="tel:+919425172797" className="hover:text-gold transition-colors">+91 94251 72797</a>
                 </div>
               </li>
               <li className="flex items-start gap-2">
                 <Mail className="w-4 h-4 mt-0.5 text-gold shrink-0" />
-                <a href="mailto:info@hotelomkar.com" className="hover:text-gold transition-colors">info@hotelomkar.com</a>
+                <a href="mailto:trivediishan003@gmail.com" className="hover:text-gold transition-colors">trivediishan003@gmail.com</a>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 text-gold shrink-0" />

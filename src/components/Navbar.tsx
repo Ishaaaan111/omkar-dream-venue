@@ -52,7 +52,7 @@ const Navbar = () => {
                 {link.label}
               </a>
             ))}
-            <a href="tel:+919876543210">
+            <a href="tel:+919752233666">
               <Button size="sm" className="gold-gradient text-primary-foreground font-semibold shadow-md">
                 <Phone className="w-4 h-4 mr-1" /> Call Now
               </Button>
@@ -81,7 +81,7 @@ const Navbar = () => {
                 {link.label}
               </a>
             ))}
-            <a href="tel:+919876543210" className="block">
+            <a href="tel:+919752233666" className="block">
               <Button className="w-full gold-gradient text-primary-foreground font-semibold">
                 <Phone className="w-4 h-4 mr-1" /> Call Now
               </Button>

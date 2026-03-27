@@ -42,13 +42,13 @@ const HeroSection = () => {
                 Book Wedding Venue
               </Button>
             </a>
-            <a href="tel:+919876543210">
+            <a href="tel:+919752233666">
               <Button size="lg" variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10 text-sm sm:text-base">
                 <Phone className="w-4 h-4 mr-2" /> Call Now
               </Button>
             </a>
             <a
-              href="https://wa.me/919876543210?text=Hello%2C%20I%20want%20to%20inquire%20about%20Hotel%20Omkar"
+              href="https://wa.me/919752233666?text=Hello%2C%20I%20want%20to%20inquire%20about%20Hotel%20Omkar"
               target="_blank"
               rel="noopener noreferrer"
             >
