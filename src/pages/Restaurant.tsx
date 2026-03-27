@@ -4,9 +4,9 @@ const Restaurant = () => {
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Blur */}
-      <div 
+      <div
         className="absolute inset-0 z-0 bg-cover bg-center blur-[4px] scale-105"
-        style={{ backgroundImage: `url('/restaurant-bg.jpg')` }}
+        style={{ backgroundImage: `url('/public/restaurant-bg.jpg')` }}
       >
         <div className="absolute inset-0 bg-black/60" /> {/* Dark overlay for text readability */}
       </div>
