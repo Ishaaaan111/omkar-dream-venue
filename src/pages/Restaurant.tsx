@@ -6,7 +6,7 @@ const Restaurant = () => {
       {/* Background Image with Blur */}
       <div
         className="absolute inset-0 z-0 bg-cover bg-center blur-[4px] scale-105"
-        style={{ backgroundImage: `url('/public/restaurant-bg.jpg')` }}
+        style={{ backgroundImage: `url('/restaurant-bg.jpg')` }}
       >
         <div className="absolute inset-0 bg-black/60" /> {/* Dark overlay for text readability */}
       </div>
