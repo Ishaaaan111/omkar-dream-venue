@@ -1,16 +1,97 @@
 import { useState } from "react";
-import { CalendarDays, Users, Search } from "lucide-react";
+import { CalendarDays, Users, Search, User, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const BookingBar = () => {
   const [activeTab, setActiveTab] = useState("room");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCheckAvailability = () => {
-    toast.success("We've received your inquiry! Our team will contact you shortly.");
+  // Room booking state
+  const [roomName, setRoomName] = useState("");
+  const [roomPhone, setRoomPhone] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState("");
+  const [roomType, setRoomType] = useState("");
+
+  // Event inquiry state
+  const [eventName, setEventName] = useState("");
+  const [eventPhone, setEventPhone] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [expectedGuests, setExpectedGuests] = useState("");
+  const [eventType, setEventType] = useState("");
+
+  const handleRoomBooking = async () => {
+    if (!roomName || !roomPhone || !checkIn || !checkOut || !guests || !roomType) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from("room_bookings").insert({
+        name: roomName,
+        phone: roomPhone,
+        check_in: checkIn,
+        check_out: checkOut,
+        guests: parseInt(guests),
+        room_type: roomType,
+      });
+
+      if (error) throw error;
+
+      toast.success("Room booking submitted! Our team will contact you shortly.");
+      // Reset form
+      setRoomName("");
+      setRoomPhone("");
+      setCheckIn("");
+      setCheckOut("");
+      setGuests("");
+      setRoomType("");
+    } catch (error: any) {
+      console.error("Booking error:", error);
+      toast.error(error?.message || "Something went wrong. Please try again or call us directly.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEventInquiry = async () => {
+    if (!eventName || !eventPhone || !eventDate || !expectedGuests || !eventType) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from("event_inquiries").insert({
+        name: eventName,
+        phone: eventPhone,
+        event_date: eventDate,
+        expected_guests: parseInt(expectedGuests),
+        event_type: eventType,
+      });
+
+      if (error) throw error;
+
+      toast.success("Event inquiry submitted! Our team will contact you shortly.");
+      // Reset form
+      setEventName("");
+      setEventPhone("");
+      setEventDate("");
+      setExpectedGuests("");
+      setEventType("");
+    } catch (error: any) {
+      console.error("Inquiry error:", error);
+      toast.error(error?.message || "Something went wrong. Please try again or call us directly.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -34,24 +115,58 @@ const BookingBar = () => {
             </TabsList>
 
             <TabsContent value="room" className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <User className="w-3.5 h-3.5" /> Your Name
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Full name"
+                    className="bg-background"
+                    value={roomName}
+                    onChange={(e) => setRoomName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <Phone className="w-3.5 h-3.5" /> Phone Number
+                  </label>
+                  <Input
+                    type="tel"
+                    placeholder="Phone number"
+                    className="bg-background"
+                    value={roomPhone}
+                    onChange={(e) => setRoomPhone(e.target.value)}
+                  />
+                </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                     <CalendarDays className="w-3.5 h-3.5" /> Check-in
                   </label>
-                  <Input type="date" className="bg-background" />
+                  <Input
+                    type="date"
+                    className="bg-background"
+                    value={checkIn}
+                    onChange={(e) => setCheckIn(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                     <CalendarDays className="w-3.5 h-3.5" /> Check-out
                   </label>
-                  <Input type="date" className="bg-background" />
+                  <Input
+                    type="date"
+                    className="bg-background"
+                    value={checkOut}
+                    onChange={(e) => setCheckOut(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                     <Users className="w-3.5 h-3.5" /> Guests
                   </label>
-                  <Select>
+                  <Select value={guests} onValueChange={setGuests}>
                     <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Guests" />
                     </SelectTrigger>
@@ -64,7 +179,7 @@ const BookingBar = () => {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-muted-foreground">Room Type</label>
-                  <Select>
+                  <Select value={roomType} onValueChange={setRoomType}>
                     <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Type" />
                     </SelectTrigger>
@@ -74,29 +189,71 @@ const BookingBar = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleCheckAvailability} className="gold-gradient text-primary-foreground font-semibold h-10">
-                  <Search className="w-4 h-4 mr-2" /> Check
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button
+                  onClick={handleRoomBooking}
+                  disabled={isSubmitting}
+                  className="gold-gradient text-primary-foreground font-semibold h-10 px-8"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  {isSubmitting ? "Submitting..." : "Book Now"}
                 </Button>
               </div>
             </TabsContent>
 
             <TabsContent value="wedding" className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <User className="w-3.5 h-3.5" /> Your Name
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Full name"
+                    className="bg-background"
+                    value={eventName}
+                    onChange={(e) => setEventName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <Phone className="w-3.5 h-3.5" /> Phone Number
+                  </label>
+                  <Input
+                    type="tel"
+                    placeholder="Phone number"
+                    className="bg-background"
+                    value={eventPhone}
+                    onChange={(e) => setEventPhone(e.target.value)}
+                  />
+                </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                     <CalendarDays className="w-3.5 h-3.5" /> Event Date
                   </label>
-                  <Input type="date" className="bg-background" />
+                  <Input
+                    type="date"
+                    className="bg-background"
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5" /> Guests
+                    <Users className="w-3.5 h-3.5" /> Expected Guests
                   </label>
-                  <Input type="number" placeholder="Expected guests" className="bg-background" />
+                  <Input
+                    type="number"
+                    placeholder="Expected guests"
+                    className="bg-background"
+                    value={expectedGuests}
+                    onChange={(e) => setExpectedGuests(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-muted-foreground">Event Type</label>
-                  <Select>
+                  <Select value={eventType} onValueChange={setEventType}>
                     <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
@@ -108,8 +265,15 @@ const BookingBar = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleCheckAvailability} className="gold-gradient text-primary-foreground font-semibold h-10">
-                  <Search className="w-4 h-4 mr-2" /> Check Date
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button
+                  onClick={handleEventInquiry}
+                  disabled={isSubmitting}
+                  className="gold-gradient text-primary-foreground font-semibold h-10 px-8"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  {isSubmitting ? "Submitting..." : "Submit Inquiry"}
                 </Button>
               </div>
             </TabsContent>
