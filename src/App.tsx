@@ -17,6 +17,7 @@ import AdminRooms from "@/admin/pages/AdminRooms";
 import AdminBookings from "@/admin/pages/AdminBookings";
 import AdminPendingRequests from "@/admin/pages/AdminPendingRequests";
 import AdminCustomers from "@/admin/pages/AdminCustomers";
+import AdminEvents from "@/admin/pages/AdminEvents";
 import AdminSettings from "@/admin/pages/AdminSettings";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/admin/rooms" element={<AdminRooms />} />
                 <Route path="/admin/bookings" element={<AdminBookings />} />
                 <Route path="/admin/pending" element={<AdminPendingRequests />} />
+                <Route path="/admin/events" element={<AdminEvents />} />
                 <Route path="/admin/customers" element={<AdminCustomers />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
               </Route>

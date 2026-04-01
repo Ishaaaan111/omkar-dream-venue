@@ -42,6 +42,9 @@ interface Room {
   type: string;
   price: number;
   status: string;
+  customer_name: string | null;
+  check_in_time: string | null;
+  check_out_time: string | null;
   created_at: string;
 }
 
@@ -102,6 +105,8 @@ const AdminDashboard = () => {
   });
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
   const [occupiedRooms, setOccupiedRooms] = useState<Room[]>([]);
+  const [todayCheckIns, setTodayCheckIns] = useState<Room[]>([]);
+  const [todayCheckOuts, setTodayCheckOuts] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Add Services State
@@ -158,6 +163,69 @@ const AdminDashboard = () => {
       });
 
       setRecentBookings((bookings as RecentBooking[]) ?? []);
+
+      // Fetch Today's Activity
+      const today = new Date();
+      const dateString = today.toLocaleDateString('en-CA'); // YYYY-MM-DD
+      
+      today.setHours(0, 0, 0, 0);
+      const startOfToday = today.toISOString();
+      today.setHours(23, 59, 59, 999);
+      const endOfToday = today.toISOString();
+
+      // 1. Actual Check-ins/outs (from rooms table)
+      const { data: actualCheckIns } = await supabase
+        .from("rooms")
+        .select("*")
+        .gte("check_in_time", startOfToday)
+        .lte("check_in_time", endOfToday);
+      
+      const { data: actualCheckOuts } = await supabase
+        .from("rooms")
+        .select("*")
+        .gte("check_out_time", startOfToday)
+        .lte("check_out_time", endOfToday);
+
+      // 2. Expected Check-ins/outs (from confirmed bookings)
+      const { data: expectedCheckIns } = await supabase
+        .from("room_bookings")
+        .select("*")
+        .eq("status", "confirmed")
+        .eq("check_in", dateString);
+
+      const { data: expectedCheckOuts } = await supabase
+        .from("room_bookings")
+        .select("*")
+        .eq("status", "confirmed")
+        .eq("check_out", dateString);
+
+      // Combine and format
+      const checkInList = [
+        ...(actualCheckIns?.map(r => ({ ...r, activityType: 'actual' })) || []),
+        ...(expectedCheckIns?.map(b => ({ 
+          id: b.id, 
+          room_number: `Booked (${b.room_type})`, 
+          customer_name: b.name, 
+          type: b.room_type,
+          check_in_time: b.created_at, // filler
+          activityType: 'expected' 
+        })) || [])
+      ];
+
+      const checkOutList = [
+        ...(actualCheckOuts?.map(r => ({ ...r, activityType: 'actual' })) || []),
+        ...(expectedCheckOuts?.map(b => ({ 
+          id: b.id, 
+          room_number: `Booked`, 
+          customer_name: b.name, 
+          type: b.room_type,
+          check_out_time: b.created_at, // filler
+          activityType: 'expected' 
+        })) || [])
+      ];
+
+      setTodayCheckIns(checkInList as any);
+      setTodayCheckOuts(checkOutList as any);
     } catch (error) {
       console.error("Dashboard fetch error:", error);
     } finally {
@@ -281,6 +349,107 @@ const AdminDashboard = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Today's Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Today's Check-Ins */}
+        <div className="bg-slate-900/80 backdrop-blur-sm rounded-xl border border-slate-800/50 overflow-hidden">
+          <div className="p-4 border-b border-slate-800/50 flex items-center justify-between bg-emerald-500/5">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Today's Check-Ins
+            </h3>
+            <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-500 px-2 py-0.5 rounded uppercase tracking-wider">
+              {todayCheckIns.length} New
+            </span>
+          </div>
+          <div className="p-2">
+            {todayCheckIns.length === 0 ? (
+              <p className="py-8 text-center text-xs text-slate-600 italic">No check-ins today</p>
+            ) : (
+              <div className="space-y-1">
+                {todayCheckIns.map(item => (
+                  <div key={item.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-800/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-md flex items-center justify-center border ${(item as any).activityType === 'expected' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-slate-800 border-slate-700'}`}>
+                        <span className={`text-[10px] font-bold ${(item as any).activityType === 'expected' ? 'text-amber-400' : 'text-white'}`}>
+                          {(item as any).activityType === 'expected' ? 'BK' : item.room_number}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-white">{item.customer_name}</p>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${(item as any).activityType === 'expected' ? 'bg-amber-500/20 text-amber-500' : 'bg-emerald-500/20 text-emerald-500'}`}>
+                            {(item as any).activityType === 'expected' ? 'Expected' : 'Done'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 capitalize">{item.type} • { (item as any).activityType === 'expected' ? 'Awaiting Arrival' : 'Checked In' }</p>
+                      </div>
+                    </div>
+                    <div className="text-right text-[10px]">
+                      <p className="text-slate-400 font-medium">
+                        {(item as any).activityType === 'actual' && item.check_in_time 
+                          ? new Date(item.check_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                          : 'Today'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Today's Check-Outs */}
+        <div className="bg-slate-900/80 backdrop-blur-sm rounded-xl border border-slate-800/50 overflow-hidden">
+          <div className="p-4 border-b border-slate-800/50 flex items-center justify-between bg-amber-500/5">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              Today's Check-Outs
+            </h3>
+            <span className="text-[10px] font-bold bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded uppercase tracking-wider">
+              {todayCheckOuts.length} Done
+            </span>
+          </div>
+          <div className="p-2">
+            {todayCheckOuts.length === 0 ? (
+              <p className="py-8 text-center text-xs text-slate-600 italic">No check-outs today</p>
+            ) : (
+              <div className="space-y-1">
+                {todayCheckOuts.map(item => (
+                  <div key={item.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-800/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-md flex items-center justify-center border ${(item as any).activityType === 'expected' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-slate-800 border-slate-700'}`}>
+                        <span className={`text-[10px] font-bold ${(item as any).activityType === 'expected' ? 'text-amber-400' : 'text-white'}`}>
+                          {(item as any).activityType === 'expected' ? 'BK' : item.room_number}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className={`text-sm font-medium text-white ${(item as any).activityType === 'actual' ? 'line-through decoration-slate-600' : ''}`}>
+                            {(item as any).activityType === 'expected' ? item.customer_name : `${item.room_number} (Vacated)`}
+                          </p>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${(item as any).activityType === 'expected' ? 'bg-amber-500/20 text-amber-500' : 'bg-slate-500/20 text-slate-400'}`}>
+                            {(item as any).activityType === 'expected' ? 'Expected' : 'Done'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 capitalize">{item.type} • {(item as any).activityType === 'expected' ? 'Departure Due' : 'Completed'}</p>
+                      </div>
+                    </div>
+                    <div className="text-right text-[10px]">
+                      <p className="text-slate-400 font-medium">
+                        {(item as any).activityType === 'actual' && item.check_out_time 
+                          ? new Date(item.check_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                          : 'Today'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Occupied Rooms & Services */}

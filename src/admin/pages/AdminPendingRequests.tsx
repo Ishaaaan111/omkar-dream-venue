@@ -11,12 +11,14 @@ import {
   CalendarDays,
   BedDouble,
   RefreshCw,
+  Mail,
 } from "lucide-react";
 
 interface PendingRequest {
   id: string;
   name: string;
   phone: string;
+  email: string;
   room_type: string;
   check_in: string;
   check_out: string;
@@ -60,6 +62,31 @@ const AdminPendingRequests = () => {
         .eq("id", id);
 
       if (error) throw error;
+
+      if (status === "confirmed") {
+        const request = requests.find(r => r.id === id);
+        if (request) {
+          // Trigger Vercel API
+          fetch("/api/send-confirmation", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              type: "room_booking",
+              id: request.id,
+              name: request.name,
+              email: request.email,
+              details: {
+                room_type: request.room_type,
+                check_in: request.check_in,
+                check_out: request.check_out,
+                guests: request.guests
+              }
+            })
+          }).catch(err => console.error("Email error:", err));
+        }
+      }
 
       toast.success(
         status === "confirmed"
@@ -160,6 +187,7 @@ const AdminPendingRequests = () => {
                     <div>
                       <p className="text-xs text-slate-500 mb-0.5">Contact</p>
                       <p className="text-sm font-semibold text-white">{req.phone}</p>
+                      <p className="text-xs text-slate-400 truncate max-w-[150px]">{req.email}</p>
                       <p className="text-xs text-slate-500">{req.guests} guest{req.guests > 1 ? "s" : ""}</p>
                     </div>
                   </div>

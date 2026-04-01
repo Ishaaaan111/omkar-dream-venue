@@ -22,6 +22,9 @@ interface Room {
   type: string;
   price: number;
   status: string;
+  customer_name: string | null;
+  check_in_time: string | null;
+  check_out_time: string | null;
   created_at: string;
 }
 
@@ -55,6 +58,12 @@ const AdminRooms = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<RoomForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  
+  // Check-in state
+  const [checkInModalOpen, setCheckInModalOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [customerName, setCustomerName] = useState("");
+  const [processingAction, setProcessingAction] = useState(false);
 
   const fetchRooms = async () => {
     const { data, error } = await supabase
@@ -146,6 +155,58 @@ const AdminRooms = () => {
     }
   };
 
+  const handleCheckIn = async () => {
+    if (!selectedRoom || !customerName.trim()) {
+      toast.error("Please enter customer name");
+      return;
+    }
+
+    setProcessingAction(true);
+    try {
+      const { error } = await supabase
+        .from("rooms")
+        .update({
+          status: "occupied",
+          customer_name: customerName.trim(),
+          check_in_time: new Date().toISOString(),
+          check_out_time: null
+        })
+        .eq("id", selectedRoom.id);
+
+      if (error) throw error;
+      toast.success(`Checked in room ${selectedRoom.room_number}`);
+      setCheckInModalOpen(false);
+      setCustomerName("");
+      fetchRooms();
+    } catch (error: any) {
+      toast.error(error.message || "Check-in failed");
+    } finally {
+      setProcessingAction(false);
+    }
+  };
+
+  const handleCheckOut = async (room: Room) => {
+    setProcessingAction(true);
+    try {
+      const { error } = await supabase
+        .from("rooms")
+        .update({
+          status: "available",
+          customer_name: null,
+          check_out_time: new Date().toISOString()
+        })
+        .eq("id", room.id);
+
+      if (error) throw error;
+      toast.success(`Checked out room ${room.room_number}`);
+      fetchRooms();
+    } catch (error: any) {
+      toast.error(error.message || "Check-out failed");
+    } finally {
+      setProcessingAction(false);
+    }
+  };
+
   const filteredRooms = rooms.filter(
     (r) =>
       r.room_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -206,6 +267,7 @@ const AdminRooms = () => {
               <thead>
                 <tr className="border-b border-slate-800/50">
                   <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">Room No.</th>
+                  <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">Customer</th>
                   <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">Type</th>
                   <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">Price / Night</th>
                   <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">Status</th>
@@ -216,6 +278,9 @@ const AdminRooms = () => {
                 {filteredRooms.map((room) => (
                   <tr key={room.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-5 py-3.5 text-sm font-semibold text-white">{room.room_number}</td>
+                    <td className="px-5 py-3.5 text-sm text-slate-300">
+                      {room.customer_name || <span className="text-slate-600 italic">No Guest</span>}
+                    </td>
                     <td className="px-5 py-3.5 text-sm text-slate-400 capitalize">{room.type}</td>
                     <td className="px-5 py-3.5 text-sm text-slate-300 font-medium">₹{Number(room.price).toLocaleString()}</td>
                     <td className="px-5 py-3.5">
@@ -224,21 +289,43 @@ const AdminRooms = () => {
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEditModal(room)}
-                          className="p-2 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
-                          title="Edit"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirm(room.id)}
-                          className="p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      <div className="flex items-center justify-end gap-3">
+                        {room.status === "available" && (
+                          <button
+                            onClick={() => {
+                              setSelectedRoom(room);
+                              setCheckInModalOpen(true);
+                            }}
+                            className="h-8 px-3 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+                          >
+                            Check-In
+                          </button>
+                        )}
+                        {room.status === "occupied" && (
+                          <button
+                            onClick={() => handleCheckOut(room)}
+                            disabled={processingAction}
+                            className="h-8 px-3 rounded-lg bg-red-500/10 text-red-400 text-xs font-semibold border border-red-500/20 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                          >
+                            Check-Out
+                          </button>
+                        )}
+                        <div className="flex items-center gap-1 border-l border-slate-800 ml-1 pl-2">
+                          <button
+                            onClick={() => openEditModal(room)}
+                            className="p-2 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                            title="Edit"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm(room.id)}
+                            className="p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -363,6 +450,68 @@ const AdminRooms = () => {
                   Delete
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Check-In Modal */}
+      {checkInModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setCheckInModalOpen(false)}>
+          <div
+            className="bg-slate-900 border border-slate-800/50 rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <ConciergeBell className="w-5 h-5 text-amber-500" />
+                Check-In Room {selectedRoom?.room_number}
+              </h3>
+              <button onClick={() => setCheckInModalOpen(false)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-300">Customer Name <span className="text-red-400">*</span></label>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Enter full name"
+                  className="w-full h-10 px-4 rounded-lg bg-slate-800/50 border border-slate-700/50 text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all"
+                  autoFocus
+                />
+              </div>
+              
+              <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-500">Room Type</span>
+                  <span className="text-slate-300 capitalize">{selectedRoom?.type}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-500">Price / Night</span>
+                  <span className="text-amber-500 font-semibold">₹{selectedRoom?.price.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setCheckInModalOpen(false)}
+                className="flex-1 h-10 rounded-lg bg-slate-800 text-slate-300 text-sm font-medium hover:bg-slate-700 transition-colors"
+                disabled={processingAction}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCheckIn}
+                disabled={processingAction || !customerName.trim()}
+                className="flex-1 h-10 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-semibold hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                {processingAction ? <Loader2 className="w-4 h-4 animate-spin" /> : "Complete Check-In"}
+              </button>
             </div>
           </div>
         </div>

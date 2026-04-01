@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarDays, Users, Search, User, Phone } from "lucide-react";
+import { CalendarDays, Users, Search, User, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,6 +14,7 @@ const BookingBar = () => {
   // Room booking state
   const [roomName, setRoomName] = useState("");
   const [roomPhone, setRoomPhone] = useState("");
+  const [roomEmail, setRoomEmail] = useState("");
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("");
@@ -22,12 +23,13 @@ const BookingBar = () => {
   // Event inquiry state
   const [eventName, setEventName] = useState("");
   const [eventPhone, setEventPhone] = useState("");
+  const [eventEmail, setEventEmail] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [expectedGuests, setExpectedGuests] = useState("");
   const [eventType, setEventType] = useState("");
 
   const handleRoomBooking = async () => {
-    if (!roomName || !roomPhone || !checkIn || !checkOut || !guests || !roomType) {
+    if (!roomName || !roomPhone || !roomEmail || !checkIn || !checkOut || !guests || !roomType) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -37,6 +39,7 @@ const BookingBar = () => {
       const { error } = await supabase.from("room_bookings").insert({
         name: roomName,
         phone: roomPhone,
+        email: roomEmail,
         check_in: checkIn,
         check_out: checkOut,
         guests: parseInt(guests),
@@ -49,6 +52,7 @@ const BookingBar = () => {
       // Reset form
       setRoomName("");
       setRoomPhone("");
+      setRoomEmail("");
       setCheckIn("");
       setCheckOut("");
       setGuests("");
@@ -62,7 +66,7 @@ const BookingBar = () => {
   };
 
   const handleEventInquiry = async () => {
-    if (!eventName || !eventPhone || !eventDate || !expectedGuests || !eventType) {
+    if (!eventName || !eventPhone || !eventEmail || !eventDate || !expectedGuests || !eventType) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -72,6 +76,7 @@ const BookingBar = () => {
       const { error } = await supabase.from("event_inquiries").insert({
         name: eventName,
         phone: eventPhone,
+        email: eventEmail,
         event_date: eventDate,
         expected_guests: parseInt(expectedGuests),
         event_type: eventType,
@@ -83,6 +88,7 @@ const BookingBar = () => {
       // Reset form
       setEventName("");
       setEventPhone("");
+      setEventEmail("");
       setEventDate("");
       setExpectedGuests("");
       setEventType("");
@@ -138,6 +144,18 @@ const BookingBar = () => {
                     className="bg-background"
                     value={roomPhone}
                     onChange={(e) => setRoomPhone(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <Mail className="w-3.5 h-3.5" /> Email Address
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="Email address"
+                    className="bg-background"
+                    value={roomEmail}
+                    onChange={(e) => setRoomEmail(e.target.value)}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -226,6 +244,18 @@ const BookingBar = () => {
                     className="bg-background"
                     value={eventPhone}
                     onChange={(e) => setEventPhone(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <Mail className="w-3.5 h-3.5" /> Email Address
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="Email address"
+                    className="bg-background"
+                    value={eventEmail}
+                    onChange={(e) => setEventEmail(e.target.value)}
                   />
                 </div>
                 <div className="space-y-1.5">

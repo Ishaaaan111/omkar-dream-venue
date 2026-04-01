@@ -9,6 +9,7 @@ import {
   LogOut,
   Hotel,
   X,
+  PartyPopper
 } from "lucide-react";
 import { useAuth } from "@/admin/context/AuthContext";
 import { toast } from "sonner";
@@ -25,6 +26,7 @@ const navItems = [
   { to: "/admin/rooms", icon: BedDouble, label: "Rooms" },
   { to: "/admin/bookings", icon: CalendarCheck, label: "Bookings" },
   { to: "/admin/pending", icon: Clock, label: "Pending Requests" },
+  { to: "/admin/events", icon: PartyPopper, label: "Event Inquiries" },
   { to: "/admin/customers", icon: Users, label: "Customers" },
   { to: "/admin/settings", icon: Settings, label: "Settings" },
 ];

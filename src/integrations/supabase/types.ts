@@ -25,6 +25,7 @@ export type Database = {
           guests: number
           room_type: string
           status: string
+          email: string | null
         }
         Insert: {
           id?: string
@@ -36,6 +37,7 @@ export type Database = {
           guests: number
           room_type: string
           status?: string
+          email?: string | null
         }
         Update: {
           id?: string
@@ -47,6 +49,7 @@ export type Database = {
           guests?: number
           room_type?: string
           status?: string
+          email?: string | null
         }
         Relationships: []
       }
@@ -60,6 +63,7 @@ export type Database = {
           expected_guests: number
           event_type: string
           status: string
+          email: string | null
         }
         Insert: {
           id?: string
@@ -70,6 +74,7 @@ export type Database = {
           expected_guests: number
           event_type: string
           status?: string
+          email?: string | null
         }
         Update: {
           id?: string
@@ -80,6 +85,7 @@ export type Database = {
           expected_guests?: number
           event_type?: string
           status?: string
+          email?: string | null
         }
         Relationships: []
       }
@@ -91,6 +97,9 @@ export type Database = {
           type: string
           price: number
           status: string
+          customer_name: string | null
+          check_in_time: string | null
+          check_out_time: string | null
         }
         Insert: {
           id?: string
@@ -99,6 +108,9 @@ export type Database = {
           type: string
           price: number
           status?: string
+          customer_name?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
         }
         Update: {
           id?: string
@@ -107,6 +119,9 @@ export type Database = {
           type?: string
           price?: number
           status?: string
+          customer_name?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
         }
         Relationships: []
       }
