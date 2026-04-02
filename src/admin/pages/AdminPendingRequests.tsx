@@ -66,13 +66,9 @@ const AdminPendingRequests = () => {
       if (status === "confirmed") {
         const request = requests.find(r => r.id === id);
         if (request) {
-          // Trigger Vercel API
-          fetch("/api/send-confirmation", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
+          // Trigger Supabase Edge Function
+          const { error: emailError } = await supabase.functions.invoke("send-confirmation", {
+            body: {
               type: "room_booking",
               id: request.id,
               name: request.name,
@@ -83,8 +79,9 @@ const AdminPendingRequests = () => {
                 check_out: request.check_out,
                 guests: request.guests
               }
-            })
-          }).catch(err => console.error("Email error:", err));
+            }
+          });
+          if (emailError) console.error("Email error:", emailError);
         }
       }
 

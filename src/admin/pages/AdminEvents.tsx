@@ -80,13 +80,9 @@ const AdminEvents = () => {
       if (status === "confirmed") {
         const inquiry = inquiries.find(i => i.id === id);
         if (inquiry) {
-          // Trigger Vercel API
-          fetch("/api/send-confirmation", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
+          // Trigger Supabase Edge Function
+          const { error: emailError } = await supabase.functions.invoke("send-confirmation", {
+            body: {
               type: "event_inquiry",
               id: inquiry.id,
               name: inquiry.name,
@@ -96,8 +92,9 @@ const AdminEvents = () => {
                 event_date: inquiry.event_date,
                 expected_guests: inquiry.expected_guests
               }
-            })
-          }).catch(err => console.error("Email error:", err));
+            }
+          });
+          if (emailError) console.error("Email error:", emailError);
         }
       }
 
