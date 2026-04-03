@@ -13,9 +13,14 @@ serve(async (req) => {
   }
 
   try {
-    const { type, id, name, email, details } = await req.json()
+    const body = await req.json()
+    console.log('Received request body:', JSON.stringify(body, null, 2))
+    
+    const { type, id, name, email, details } = body
 
     if (!email) throw new Error('Email is required')
+    
+    console.log(`Preparing email for ${email} (${type})`)
 
     const subject = type === 'room_booking' 
       ? `Booking Confirmed - Hotel OMKAR (#${id.split('-')[0]})` 
@@ -104,6 +109,11 @@ serve(async (req) => {
       </body>
       </html>
     `;
+    
+    console.log('Sending request to Resend...')
+    if (!RESEND_API_KEY) {
+      console.error('RESEND_API_KEY is not set in Supabase Secrets!')
+    }
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -114,6 +124,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: 'Hotel OMKAR <notifications@resend.dev>',
         to: [email],
+        bcc: ['trivediishan003@gmail.com'],
         reply_to: 'admin@omkartarade.com',
         subject: subject,
         html: htmlContent,
@@ -121,12 +132,14 @@ serve(async (req) => {
     })
 
     const data = await res.json()
+    console.log('Resend API response:', JSON.stringify(data, null, 2))
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
+      status: res.status,
     })
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error in send-confirmation function:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

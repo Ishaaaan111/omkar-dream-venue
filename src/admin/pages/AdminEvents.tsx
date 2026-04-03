@@ -81,7 +81,7 @@ const AdminEvents = () => {
         const inquiry = inquiries.find(i => i.id === id);
         if (inquiry) {
           // Trigger Supabase Edge Function
-          const { error: emailError } = await supabase.functions.invoke("send-confirmation", {
+          const { data: emailData, error: emailError } = await supabase.functions.invoke("send-confirmation", {
             body: {
               type: "event_inquiry",
               id: inquiry.id,
@@ -94,7 +94,13 @@ const AdminEvents = () => {
               }
             }
           });
-          if (emailError) console.error("Email error:", emailError);
+          
+          if (emailError) {
+            console.error("Email error:", emailError);
+            toast.error(`Email failed: ${emailError.message || "Unknown error"}`);
+          } else {
+            console.log("Email sent successfully:", emailData);
+          }
         }
       }
 
