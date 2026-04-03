@@ -9,7 +9,9 @@ import {
   LogOut,
   Hotel,
   X,
-  PartyPopper
+  PartyPopper,
+  ConciergeBell,
+  FileText
 } from "lucide-react";
 import { useAuth } from "@/admin/context/AuthContext";
 import { toast } from "sonner";
@@ -24,6 +26,8 @@ interface AdminSidebarProps {
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
   { to: "/admin/rooms", icon: BedDouble, label: "Rooms" },
+  { to: "/admin/services", icon: ConciergeBell, label: "Room Services" },
+  { to: "/admin/invoices", icon: FileText, label: "All Invoices" },
   { to: "/admin/bookings", icon: CalendarCheck, label: "Bookings" },
   { to: "/admin/pending", icon: Clock, label: "Pending Requests" },
   { to: "/admin/events", icon: PartyPopper, label: "Event Inquiries" },

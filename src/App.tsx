@@ -14,11 +14,14 @@ import AdminLayout from "@/admin/components/AdminLayout";
 import AdminLogin from "@/admin/pages/AdminLogin";
 import AdminDashboard from "@/admin/pages/AdminDashboard";
 import AdminRooms from "@/admin/pages/AdminRooms";
+import AdminServices from "@/admin/pages/AdminServices";
 import AdminBookings from "@/admin/pages/AdminBookings";
 import AdminPendingRequests from "@/admin/pages/AdminPendingRequests";
 import AdminCustomers from "@/admin/pages/AdminCustomers";
 import AdminEvents from "@/admin/pages/AdminEvents";
 import AdminSettings from "@/admin/pages/AdminSettings";
+import AdminInvoice from "@/admin/pages/AdminInvoice";
+import AdminInvoices from "@/admin/pages/AdminInvoices";
 
 const queryClient = new QueryClient();
 
@@ -42,11 +45,14 @@ const App = () => (
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/rooms" element={<AdminRooms />} />
+                <Route path="/admin/services" element={<AdminServices />} />
                 <Route path="/admin/bookings" element={<AdminBookings />} />
                 <Route path="/admin/pending" element={<AdminPendingRequests />} />
                 <Route path="/admin/events" element={<AdminEvents />} />
                 <Route path="/admin/customers" element={<AdminCustomers />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
+                <Route path="/admin/invoice/:id" element={<AdminInvoice />} />
+                <Route path="/admin/invoices" element={<AdminInvoices />} />
               </Route>
             </Route>
 

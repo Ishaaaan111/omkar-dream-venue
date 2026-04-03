@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import BillingSidebar from "@/admin/components/BillingSidebar";
 import { toast } from "sonner";
 import {
   Plus,
@@ -58,6 +59,10 @@ const AdminRooms = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<RoomForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  
+  const [selectedType, setSelectedType] = useState<"ac" | "nonac">("ac");
+  const [billingOpen, setBillingOpen] = useState(false);
+  const [selectedBillingRoom, setSelectedBillingRoom] = useState<any>(null);
   
   // Check-in state
   const [checkInModalOpen, setCheckInModalOpen] = useState(false);
@@ -209,8 +214,10 @@ const AdminRooms = () => {
 
   const filteredRooms = rooms.filter(
     (r) =>
-      r.room_number.toLowerCase().includes(search.toLowerCase()) ||
-      r.type.toLowerCase().includes(search.toLowerCase())
+      r.type === selectedType && (
+        r.room_number.toLowerCase().includes(search.toLowerCase()) ||
+        r.type.toLowerCase().includes(search.toLowerCase())
+      )
   );
 
   const getStatusStyle = (status: string) => {
@@ -234,7 +241,30 @@ const AdminRooms = () => {
     <div className="space-y-4 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-xs">
+        <div className="flex items-center gap-2 bg-slate-900/80 rounded-lg p-1 border border-slate-800/50">
+          <button
+            onClick={() => setSelectedType("ac")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              selectedType === "ac"
+                ? "bg-amber-500/15 text-amber-400 shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            AC Rooms
+          </button>
+          <button
+            onClick={() => setSelectedType("nonac")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              selectedType === "nonac"
+                ? "bg-amber-500/15 text-amber-400 shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Non-AC Rooms
+          </button>
+        </div>
+
+        <div className="relative flex-1 max-w-xs w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
@@ -244,12 +274,6 @@ const AdminRooms = () => {
             className="w-full h-10 pl-10 pr-4 rounded-lg bg-slate-900/80 border border-slate-800/50 text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/40 transition-all"
           />
         </div>
-        <button
-          onClick={openAddModal}
-          className="h-10 px-4 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-semibold flex items-center gap-2 hover:from-amber-600 hover:to-amber-700 shadow-lg shadow-amber-500/20 transition-all"
-        >
-          <Plus className="w-4 h-4" /> Add Room
-        </button>
       </div>
 
       {/* Table */}
@@ -258,7 +282,7 @@ const AdminRooms = () => {
           <div className="p-12 text-center">
             <BedDouble className="w-12 h-12 text-slate-700 mx-auto mb-3" />
             <p className="text-slate-500 text-sm">
-              {search ? "No rooms match your search" : "No rooms added yet"}
+              {search ? "No rooms match your search" : "No rooms found in this category"}
             </p>
           </div>
         ) : (
@@ -302,13 +326,24 @@ const AdminRooms = () => {
                           </button>
                         )}
                         {room.status === "occupied" && (
-                          <button
-                            onClick={() => handleCheckOut(room)}
-                            disabled={processingAction}
-                            className="h-8 px-3 rounded-lg bg-red-500/10 text-red-400 text-xs font-semibold border border-red-500/20 hover:bg-red-500/20 transition-all disabled:opacity-50"
-                          >
-                            Check-Out
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedBillingRoom(room);
+                                setBillingOpen(true);
+                              }}
+                              className="h-8 px-3 rounded-lg bg-amber-500/10 text-amber-500 text-xs font-semibold border border-amber-500/20 hover:bg-amber-500/20 transition-all"
+                            >
+                              Checkout
+                            </button>
+                            <button
+                              onClick={() => handleCheckOut(room)}
+                              disabled={processingAction}
+                              className="h-8 px-3 rounded-lg bg-red-500/10 text-red-400 text-xs font-semibold border border-red-500/20 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                            >
+                              Quick Out
+                            </button>
+                          </div>
                         )}
                         <div className="flex items-center gap-1 border-l border-slate-800 ml-1 pl-2">
                           <button
@@ -317,13 +352,6 @@ const AdminRooms = () => {
                             title="Edit"
                           >
                             <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(room.id)}
-                            className="p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -516,6 +544,13 @@ const AdminRooms = () => {
           </div>
         </div>
       )}
+      {/* Billing Sidebar */}
+      <BillingSidebar 
+        open={billingOpen} 
+        onOpenChange={setBillingOpen} 
+        room={selectedBillingRoom} 
+        onCheckoutComplete={fetchRooms}
+      />
     </div>
   );
 };
