@@ -38,7 +38,7 @@ const HeroSection = () => {
               </Button>
             </a>
             <a href="#wedding">
-              <Button size="lg" variant="outline" className="border-gold-light text-primary-foreground hover:bg-gold/20 font-semibold text-sm sm:text-base px-6 sm:px-8">
+              <Button size="lg" className="gold-gradient text-primary-foreground font-semibold shadow-lg text-sm sm:text-base px-6 sm:px-8">
                 Book Wedding Venue
               </Button>
             </a>

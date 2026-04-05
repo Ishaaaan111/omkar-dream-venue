@@ -74,8 +74,8 @@ const RoomsSection = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Non-AC Room</h3>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground line-through">₹1,499</p>
-                  <p className="text-xl font-bold text-primary">₹999<span className="text-xs text-muted-foreground font-normal">/night</span></p>
+                  <p className="text-xs text-muted-foreground line-through">₹1,799</p>
+                  <p className="text-xl font-bold text-primary">₹1,299<span className="text-xs text-muted-foreground font-normal">/night</span></p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 mb-4">

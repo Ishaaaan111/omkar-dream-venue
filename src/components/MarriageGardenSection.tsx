@@ -66,8 +66,7 @@ const MarriageGardenSection = () => {
                 </a>
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="border-gold-light text-primary-foreground hover:bg-gold/20"
+                  className="gold-gradient text-primary-foreground font-semibold shadow-lg"
                   onClick={() => toast.info("Wedding brochure download will be available soon!")}
                 >
                   <Download className="w-4 h-4 mr-2" /> Download Brochure
